@@ -12,7 +12,7 @@ public sealed class TargetRecord
 
 /// <summary>
 /// 数据仓库:把"当前源目录 + 历史源目录 + 各目标链接记录"全部存于**单个 INI 文件**
-/// (&lt;工具目录&gt;/data/symlinkagent.ini),取代原先的 config.json 与 state/*.json。
+/// (与 EXE 同级的 &lt;工具目录&gt;/SymlinkAgent.ini),取代原先的 config.json 与 state/*.json。
 /// 绿色便携、原子写入;损坏时尽量容错(读不出的部分忽略)。
 /// 责任:配置/历史/状态的统一持久化与查询。
 /// </summary>
@@ -109,7 +109,7 @@ public sealed class DataStore
                 sec.Add("link", $"{e.Target}|{e.Type}|{e.ExpectedSource}");
         }
 
-        Directory.CreateDirectory(AppPaths.DataDir);
+        Directory.CreateDirectory(AppPaths.ToolDir);
         string path = AppPaths.DataFile;
         string tmp = path + ".tmp";
         File.WriteAllText(tmp, ini.ToString());

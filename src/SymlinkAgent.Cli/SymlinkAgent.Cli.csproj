@@ -10,11 +10,23 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- UI 文字硬编码在源码,卫星只影响框架报错;统一只留 en 以瘦身 -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 
-    <!-- 单文件、自包含发布:免装 .NET 运行时 -->
+    <!-- NativeAOT:编译为纯原生单 EXE,免装运行时、启动近乎瞬时、体积最小 -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <SelfContained>true</SelfContained>
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishAot>true</PublishAot>
+    <!-- AOT 默认 full 裁剪;显式声明以示意图 -->
+    <TrimMode>full</TrimMode>
+    <!-- 关掉本项目用不到的运行时特性,裁剪时一并剥离以进一步瘦身 -->
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <EventSourceSupport>false</EventSourceSupport>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+    <DebuggerSupport>false</DebuggerSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <!-- 不产出 pdb 调试符号,保持 dist 干净 -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
 
     <!-- 内嵌 UAC 清单:全程管理员 -->
     <ApplicationManifest>app.manifest</ApplicationManifest>

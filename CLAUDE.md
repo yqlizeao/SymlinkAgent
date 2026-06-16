@@ -35,8 +35,8 @@ CLI 命令实现 `ICommand`(在 `Program.cs` 注册表登记一行);GUI 用 `Rel
 
 | 能力 | 模块 |
 |---|---|
-| 数据持久化(配置+源历史+链接记录) | `DataStore`(单一 `data/symlinkagent.ini`,原子写入;`AppPaths` 解析路径) |
-| 源内容推导 | `SourceScanner`(扫描顶层→链接条目,忽略 .svn/.git/data 等) |
+| 数据持久化(配置+源历史+链接记录) | `DataStore`(单一 `SymlinkAgent.ini`,与 EXE 同级,原子写入;`AppPaths` 解析路径) |
+| 源内容推导 | `SourceScanner`(扫描顶层→链接条目,忽略 .svn/.git/SymlinkAgent.ini 等) |
 | 目标应用/移除/检查 | `TargetEngine`(结构化结果:ApplyOutcome/RemoveOutcome/StatusOutcome) |
 | 链接底层 | `LinkService`(.NET 原生 symbolic link) |
 | 核查 | `Verifier`(state-first + scan-second) |
@@ -48,7 +48,7 @@ CLI 命令实现 `ICommand`(在 `Program.cs` 注册表登记一行);GUI 用 `Rel
 - 全程管理员(EXE 内嵌 `requireAdministrator`),无权限分支
 - 本地版本控制 **SVN**:用 `svn:ignore` 隔离链接
 - 源目录必须本地真实盘(管理员进程看不到映射网络盘)
-- **绿色便携**:所有数据存 EXE 旁 `data/symlinkagent.ini`,CLI/GUI 同目录即共享
+- **绿色便携**:所有数据存 EXE 同级的单个 `SymlinkAgent.ini`,CLI/GUI 同目录即共享
 - **WPF 注意**:GUI 工程不可启用 `InvariantGlobalization`;`DataStore`/`IniFile` 对损坏数据返回空不抛错
 - **UI 绑定**:可编辑 ComboBox 的 ItemsSource 更新用**差量同步**(不 `Clear()`),避免 WPF 冲掉 Text 绑定
 
@@ -61,6 +61,15 @@ CLI 命令实现 `ICommand`(在 `Program.cs` 注册表登记一行);GUI 用 `Rel
 
 ```bash
 dotnet build SymlinkAgent.sln -c Debug
-dotnet publish src/SymlinkAgent.Cli -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o dist
-dotnet publish src/SymlinkAgent.Gui -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o dist
+dotnet publish src/SymlinkAgent.Gui -c Release -o dist          # 普通 shell 即可
+# CLI 走 NativeAOT,链接阶段需 MSVC 工具链 + vswhere 在 PATH,务必在 VS 开发者环境里发布:
+#   先把 VS Installer 目录(含 vswhere.exe)加进 PATH,再发布
+dotnet publish src/SymlinkAgent.Cli -c Release -o dist
 ```
+
+发布参数已固化进各壳工程 `.csproj`,无需命令行传入;`dist` 产物只剩 `SymlinkAgent.exe`(~2MB)+ `SymlinkAgentGui.exe`(~66MB)两个干净单文件。
+
+- **CLI(`SymlinkAgent.exe`)**:`NativeAOT` + `TrimMode=full` + 功能开关(`UseSystemResourceKeys` 等)+ `SatelliteResourceLanguages=en`。原生单 EXE,免运行时、启动近乎瞬时。**构建前提**:本机装有 MSVC(VS 2022 C++ 工具集),且 `vswhere.exe`(在 `C:\Program Files (x86)\Microsoft Visual Studio\Installer\`)能被 ILCompiler 找到——普通 PowerShell 里先 `$env:PATH = "C:\Program Files (x86)\Microsoft Visual Studio\Installer;$env:PATH"` 再 publish。CLI 逻辑无动态反射,AOT 安全。
+- **GUI(`SymlinkAgentGui.exe`)**:`win-x64` / 自包含 / 单文件 / 原生库内嵌 / 压缩(`EnableCompressionInSingleFile`)/ `SatelliteResourceLanguages=en`。**WPF 不支持裁剪(`NETSDK1168`)、不支持 NativeAOT**,故 GUI 体积下限就在此;勿再尝试给 GUI 开 `PublishTrimmed`/`PublishAot`。
+- 两个工程均禁用 pdb(`DebugType=none`),Core 工程同样禁用以免 `Core.pdb` 被复制进 dist。
+- **注意**:界面/命令行的中文文字是**硬编码在源码**里的字符串,不走卫星资源;`SatelliteResourceLanguages` 只决定保留哪种语言的**框架级报错文案**,改它不影响业务文字显示。

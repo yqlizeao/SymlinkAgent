@@ -10,11 +10,21 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <!-- 注意:WPF 与 InvariantGlobalization=true 不兼容(绑定需区域性数据),故不启用 -->
+    <!-- UI 文字硬编码在源码,卫星只影响框架报错;统一只留 en 以瘦身 -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 
     <!-- 单文件、自包含发布 -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
+    <!-- WPF 原生库(wpfgfx/PresentationNative 等)一并打进 EXE,发布产物只剩单个 EXE -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- 压缩单文件内嵌内容,显著瘦身(启动时多一步解压) -->
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- 注意:WPF 不支持裁剪(SDK 报 NETSDK1168),故 GUI 不启用 PublishTrimmed -->
+    <!-- 不产出 pdb 调试符号,保持 dist 干净 -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
 
     <!-- 内嵌 UAC 清单:全程管理员 -->
     <ApplicationManifest>app.manifest</ApplicationManifest>

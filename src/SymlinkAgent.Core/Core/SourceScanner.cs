@@ -21,10 +21,10 @@ public sealed class SourceScanner
 {
     private readonly string _sourceRoot;
 
-    /// <summary>顶层扫描时忽略的名字:版本控制元数据、工具数据、系统垃圾文件。</summary>
+    /// <summary>顶层扫描时忽略的名字:版本控制元数据、工具自身数据文件、系统垃圾文件。</summary>
     private static readonly HashSet<string> Ignore = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".svn", ".git", ".hg", "data", "desktop.ini", "Thumbs.db", ".DS_Store",
+        ".svn", ".git", ".hg", "SymlinkAgent.ini", "desktop.ini", "Thumbs.db", ".DS_Store",
     };
 
     public SourceScanner(string sourceRoot) => _sourceRoot = sourceRoot;

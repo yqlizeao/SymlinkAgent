@@ -14,9 +14,14 @@ dist/
 *.dll
 *.pdb
 
+# 例外:dist/ 下的两个发布 EXE 随库分发(供直接下载)
+!dist/
+!dist/SymlinkAgent.exe
+!dist/SymlinkAgentGui.exe
+
 # ---- SymlinkAgent 运行时数据 ----
-# 绿色便携:所有数据(配置+hub历史+链接记录)存于 EXE 旁 data/symlinkagent.ini
-data/
+# 绿色便携:所有数据(配置+源历史+链接记录)存于 EXE 同级的单个 SymlinkAgent.ini
+SymlinkAgent.ini
 
 # ---- Claude Code 本地配置 ----
 # settings.local.json 含本地权限缓存,不应入库
