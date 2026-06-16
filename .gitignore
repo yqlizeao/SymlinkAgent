@@ -1,0 +1,39 @@
+# ---- .NET 构建产物 ----
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+.vs/
+
+# 发布产物
+publish/
+dist/
+*.exe
+*.dll
+*.pdb
+
+# ---- SymlinkAgent 运行时数据 ----
+# 绿色便携:所有数据(配置+hub历史+链接记录)存于 EXE 旁 data/symlinkagent.ini
+data/
+
+# ---- Claude Code 本地配置 ----
+# settings.local.json 含本地权限缓存,不应入库
+.claude/settings.local.json
+
+# ---- IDE / 编辑器 ----
+.vscode/
+.idea/
+*.DotSettings.user
+_ReSharper*/
+
+# ---- 测试 / 中间产物 ----
+[Tt]est[Rr]esults/
+*.cache
+artifacts/
+
+# ---- 其它 ----
+*.log
+Thumbs.db
+.DS_Store
