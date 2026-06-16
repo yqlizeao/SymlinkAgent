@@ -1,0 +1,444 @@
+<Window x:Class="SymlinkAgent.Gui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:SymlinkAgent.Gui"
+        Title="{Binding WindowTitle}" Height="600" Width="900"
+        MinHeight="500" MinWidth="780"
+        WindowStartupLocation="CenterScreen" FontSize="13"
+        Background="#F3F3F3">
+    <Window.Resources>
+        <!-- 统一选中高亮色 / 强调色(供下方样式引用,需先声明) -->
+        <SolidColorBrush x:Key="HighlightBrush" Color="#CCE4F7"/>
+        <SolidColorBrush x:Key="HighlightBorderBrush" Color="#99C1E4"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#0067C0"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- ═══ 共享列表样式(左右两个 DataGrid 引用同一套,根除控件差异) ═══ -->
+        <Style x:Key="GridHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Padding" Value="6,5"/>
+            <Setter Property="Background" Value="#FAFAFA"/>
+            <Setter Property="BorderBrush" Value="#E8E8E8"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+
+        <Style x:Key="GridRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="{Binding RowBackground}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F0F0F0"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource HighlightBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource HighlightBorderBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="GridCellStyle" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource HighlightBrush}"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 类型列文字:次要信息,统一灰色 -->
+        <Style x:Key="TypeCellText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#666"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- ═══ Win11 统一按钮样式 ═══ -->
+        <Style x:Key="Win11Button" TargetType="Button">
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#FBFBFB"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#F0F0F0"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#CFCFCF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E4E4E4"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#BFBFBF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#F5F5F5"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#EFEFEF"/>
+                                <Setter Property="Foreground" Value="#A0A0A0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ═══ 强调主按钮(首要动作:应用) ═══ -->
+        <Style x:Key="AccentButton" TargetType="Button">
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1A78C8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#005BA8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#CFD8E0"/>
+                                <Setter Property="Foreground" Value="#F0F0F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ═══ 类型过滤分段按钮(RadioButton 单选,激活态 Accent 色) ═══ -->
+        <!-- 单一样式 + EnumToBool 绑定,消除每按钮重复的内联 DataTrigger -->
+        <Style x:Key="FilterSegment" TargetType="RadioButton">
+            <Setter Property="Margin" Value="3,0,0,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="#FBFBFB" BorderBrush="#E0E0E0"
+                                BorderThickness="1" CornerRadius="4" Padding="10,4"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#F0F0F0"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#CFCFCF"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource ResourceKey=AccentBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ResourceKey=AccentBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- 0: 上下文头(源 + 目标) -->
+            <RowDefinition Height="*"/>     <!-- 1: 主体(源条目 + 链接现状) -->
+            <RowDefinition Height="Auto"/>  <!-- 2: 状态栏 -->
+            <RowDefinition Height="Auto"/>  <!-- 3: 可折叠日志 -->
+        </Grid.RowDefinitions>
+
+        <!-- ═══ Row 0: 上下文头 —— 源 / 目标 两行对齐通栏 ═══ -->
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 源(全局上下文) -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="源路径" VerticalAlignment="Center"
+                       Margin="0,0,6,0" FontWeight="Bold" Width="58"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding RecentSources}" SelectedItem="{Binding SelectedSource}"
+                      VerticalContentAlignment="Center" ToolTip="选择历史使用过的源"/>
+            <Button Grid.Row="0" Grid.Column="2" Content="浏览..." Command="{Binding SetSourceCommand}"
+                    Style="{StaticResource Win11Button}" Margin="6,0,0,0"/>
+
+            <!-- 目标(从左面板上移,与源对齐) -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="目标路径" VerticalAlignment="Center"
+                       Margin="0,6,6,0" FontWeight="Bold" Width="58"/>
+            <ComboBox x:Name="TargetBox" Grid.Row="1" Grid.Column="1" IsEditable="True" Margin="0,6,0,0"
+                      ItemsSource="{Binding TargetsForSource}"
+                      Text="{Binding ProjectPath, UpdateSourceTrigger=PropertyChanged}"
+                      VerticalContentAlignment="Center"
+                      ToolTip="输入或选择目标目录(停顿后自动检查;Enter 立即检查)"
+                      KeyDown="TargetBox_KeyDown"
+                      SelectionChanged="TargetPathComboBox_SelectionChanged"/>
+            <Button Grid.Row="1" Grid.Column="2" Content="浏览..." Command="{Binding BrowseTargetCommand}"
+                    Style="{StaticResource Win11Button}" Margin="6,6,0,0"/>
+        </Grid>
+
+        <!-- ═══ Row 1: 主体区域(左:源 / 右:目标) ═══ -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ─── 左侧面板:源条目(本源提供什么) ─── -->
+            <DockPanel Grid.Column="0" Margin="0,0,8,0">
+                <TextBlock DockPanel.Dock="Top"
+                           Text="{Binding SourceEntries.Count, StringFormat='源目录 ({0})'}"
+                           FontWeight="SemiBold" Margin="0,0,0,4"/>
+
+                <!-- 源条目搜索(与右侧共用 SearchText) -->
+                <Border DockPanel.Dock="Top" Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
+                        CornerRadius="4" Margin="0,0,0,6">
+                    <Grid>
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 VerticalContentAlignment="Center" Padding="6,4"
+                                 BorderThickness="0" Background="Transparent"/>
+                        <TextBlock Text="输入关键词过滤…" IsHitTestVisible="False"
+                                   Foreground="#999" VerticalAlignment="Center" Margin="10,0,0,0"
+                                   Visibility="{Binding SearchText, Converter={x:Static local:NullOrEmptyToVisibilityConverter.Instance}}"/>
+                    </Grid>
+                </Border>
+
+                <!-- 源条目 DataGrid(填满;与右侧共用样式) -->
+                <DataGrid ItemsSource="{Binding SourceEntries}" AutoGenerateColumns="False" IsReadOnly="True"
+                          HeadersVisibility="Column" GridLinesVisibility="None" CanUserAddRows="False"
+                          CanUserSortColumns="True" SelectionMode="Single"
+                          Background="Transparent" BorderBrush="#E0E0E0"
+                          SelectedItem="{Binding SelectedSourceEntry}"
+                          RowStyle="{StaticResource GridRowStyle}"
+                          CellStyle="{StaticResource GridCellStyle}"
+                          ColumnHeaderStyle="{StaticResource GridHeaderStyle}"
+                          PreviewMouseLeftButtonDown="Grid_PreviewMouseLeftButtonDown"
+                          PreviewMouseRightButtonDown="Grid_PreviewMouseRightButtonDown"
+                          SelectionChanged="SourceEntries_SelectionChanged">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="类型" Binding="{Binding TypeDisplay}" Width="52"
+                                            ElementStyle="{StaticResource TypeCellText}"/>
+                        <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTemplateColumn Header="已应用" Width="56" SortMemberPath="IsApplied">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding AppliedDisplay}" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               ToolTip="✓=已正常链接到当前目标;—=未应用/需检查">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#BBB"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsApplied}" Value="True">
+                                                        <Setter Property="Foreground" Value="Green"/>
+                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="应用此条" Command="{Binding ApplySourceEntryCommand}"/>
+                            <MenuItem Header="移除此条" Command="{Binding RemoveSourceEntryCommand}"/>
+                            <Separator/>
+                            <MenuItem Header="在资源管理器中打开" Command="{Binding OpenSourceEntryInExplorerCommand}"/>
+                            <Separator/>
+                            <MenuItem Header="复制名称" Command="{Binding CopySourceEntryNameCommand}"/>
+                            <MenuItem Header="复制源路径" Command="{Binding CopySourceEntrySourceCommand}"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+            </DockPanel>
+
+            <!-- ─── 右侧面板:链接现状 + 操作 ─── -->
+            <DockPanel Grid.Column="1">
+                <TextBlock DockPanel.Dock="Top"
+                           Text="{Binding Entries.Count, StringFormat='目标目录软链 ({0})'}"
+                           FontWeight="SemiBold" Margin="0,0,0,4"/>
+
+                <!-- 操作按钮(Dock Bottom,右对齐;顺序:强制 / 检查 / 移除 / 应用) -->
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
+                    <CheckBox IsChecked="{Binding Force}" VerticalAlignment="Center" Margin="0,0,12,0"
+                              ToolTip="强制:覆盖目标中的旧链接 / 强删指向已变的链接(真实文件永不动)。用后自动取消。">
+                        <TextBlock Text="强制">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="Black"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Force}" Value="True">
+                                            <Setter Property="Foreground" Value="#C62828"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </CheckBox>
+                    <Button Content="检查" Command="{Binding StatusCommand}"
+                            Style="{StaticResource Win11Button}" Margin="0,0,6,0" MinWidth="56"
+                            ToolTip="重新核查目标链接状态 (F5)"/>
+                    <Button Content="{Binding RemoveButtonText}" Command="{Binding RemoveCommand}"
+                            Style="{StaticResource Win11Button}" Margin="0,0,6,0" MinWidth="104"
+                            ToolTip="移除链接记录(有多选则只作用选中行;真实文件永不删)"/>
+                    <Button Content="{Binding ApplyButtonText}" Command="{Binding ApplyCommand}"
+                            Style="{StaticResource AccentButton}" MinWidth="104"
+                            ToolTip="把源条目链接到目标(有多选则只作用选中行)"/>
+                </StackPanel>
+
+                <!-- 搜索栏 + 类型过滤(Dock Top) -->
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 搜索栏 -->
+                    <Grid Grid.Column="0" Margin="0,0,8,0">
+                        <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4">
+                            <TextBox x:Name="SearchBox"
+                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     VerticalContentAlignment="Center" Padding="6,4"
+                                     BorderThickness="0" Background="Transparent"
+                                     ToolTip="输入关键词过滤左右两侧条目 (Ctrl+F 聚焦,Escape 清空)"/>
+                        </Border>
+                        <TextBlock Text="输入关键词过滤…" IsHitTestVisible="False"
+                                   Foreground="#999" VerticalAlignment="Center" Margin="10,0,0,0"
+                                   Visibility="{Binding SearchText, Converter={x:Static local:NullOrEmptyToVisibilityConverter.Instance}}"/>
+                    </Grid>
+
+                    <!-- 类型过滤分段(RadioButton 单选,共用 FilterSegment 样式) -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <RadioButton Content="全部" GroupName="TypeFilter" Style="{StaticResource FilterSegment}"
+                                     IsChecked="{Binding ActiveTypeFilter, Converter={x:Static local:EnumToBoolConverter.Instance}, ConverterParameter=All}"/>
+                        <RadioButton Content="目录" GroupName="TypeFilter" Style="{StaticResource FilterSegment}"
+                                     IsChecked="{Binding ActiveTypeFilter, Converter={x:Static local:EnumToBoolConverter.Instance}, ConverterParameter=Dir}"/>
+                        <RadioButton Content="文件" GroupName="TypeFilter" Style="{StaticResource FilterSegment}"
+                                     IsChecked="{Binding ActiveTypeFilter, Converter={x:Static local:EnumToBoolConverter.Instance}, ConverterParameter=File}"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 链接状态 DataGrid + 空状态占位(同格叠加) -->
+                <Grid>
+                    <DataGrid x:Name="StatusGrid" ItemsSource="{Binding Entries}" AutoGenerateColumns="False" IsReadOnly="True"
+                              HeadersVisibility="Column" GridLinesVisibility="None" CanUserAddRows="False"
+                              CanUserSortColumns="True"
+                              Background="Transparent" BorderBrush="#E0E0E0"
+                              SelectionMode="Extended"
+                              SelectedItem="{Binding SelectedEntry}"
+                              RowStyle="{StaticResource GridRowStyle}"
+                              CellStyle="{StaticResource GridCellStyle}"
+                              ColumnHeaderStyle="{StaticResource GridHeaderStyle}"
+                              PreviewMouseLeftButtonDown="Grid_PreviewMouseLeftButtonDown"
+                              PreviewMouseRightButtonDown="Grid_PreviewMouseRightButtonDown"
+                              SelectionChanged="StatusGrid_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="类型" Binding="{Binding TypeDisplay}" Width="52"
+                                                ElementStyle="{StaticResource TypeCellText}"/>
+                            <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="源路径" Binding="{Binding ExpectedSource, Converter={x:Static local:PathCompactConverter.Instance}, ConverterParameter=24}" Width="180">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        <Setter Property="ToolTip" Value="{Binding ExpectedSource}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTemplateColumn Header="状态" Width="100" SortMemberPath="StatusSeverity">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusBrush}"
+                                                   FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="应用此条" Command="{Binding ApplyEntryCommand}"/>
+                                <MenuItem Header="移除此条" Command="{Binding RemoveEntryCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="在资源管理器中打开" Command="{Binding OpenInExplorerCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="复制名称" Command="{Binding CopyEntryNameCommand}"/>
+                                <MenuItem Header="复制源路径" Command="{Binding CopySourcePathCommand}"/>
+                                <MenuItem Header="复制目标路径" Command="{Binding CopyTargetPathCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="复制全部状态" Command="{Binding CopyAllStatusCommand}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+
+                    <!-- 空状态占位:EmptyHint 非空才显示 -->
+                    <TextBlock Text="{Binding EmptyHint}" Foreground="#999" FontSize="14"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsHitTestVisible="False" TextAlignment="Center"
+                               Visibility="{Binding EmptyHint, Converter={x:Static local:NullOrEmptyToVisibilityConverter.Instance}, ConverterParameter=invert}"/>
+                </Grid>
+            </DockPanel>
+        </Grid>
+
+        <!-- ═══ Row 2: 状态栏(源侧概览 + 目标侧链接健康度) ═══ -->
+        <StatusBar Grid.Row="2" Margin="0,4,0,0" Background="Transparent">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusLeftText}" Foreground="{Binding StatusLeftBrush}" FontWeight="SemiBold"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusTargetText}" Foreground="#666"/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <!-- ═══ Row 3: 可折叠日志 ═══ -->
+        <Expander Grid.Row="3" IsExpanded="{Binding LogExpanded}" Margin="0,2,0,0" Foreground="#444">
+            <Expander.Header>
+                <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Expander}, Path=ActualWidth}">
+                    <TextBlock Text="日志" VerticalAlignment="Center"/>
+                    <Button Content="清空" Command="{Binding ClearLogCommand}"
+                            Style="{StaticResource Win11Button}" Padding="8,2" FontSize="11"
+                            HorizontalAlignment="Right" Margin="0,0,24,0"
+                            Visibility="{Binding LogExpanded, Converter={StaticResource BoolToVis}}"/>
+                </Grid>
+            </Expander.Header>
+            <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                    Margin="0,4,0,0">
+                <TextBox x:Name="LogBox" Text="{Binding Log, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto" FontFamily="Consolas"
+                         Background="Transparent" BorderThickness="0"
+                         Height="150" Padding="6,4"
+                         TextChanged="LogBox_TextChanged"/>
+            </Border>
+        </Expander>
+    </Grid>
+</Window>

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>SymlinkAgent.Gui</RootNamespace>
+    <AssemblyName>SymlinkAgentGui</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- 注意:WPF 与 InvariantGlobalization=true 不兼容(绑定需区域性数据),故不启用 -->
+
+    <!-- 单文件、自包含发布 -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+
+    <!-- 内嵌 UAC 清单:全程管理员 -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SymlinkAgent.Core\SymlinkAgent.Core.csproj" />
+  </ItemGroup>
+
+</Project>
